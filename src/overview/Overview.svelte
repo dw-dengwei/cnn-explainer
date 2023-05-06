@@ -140,19 +140,42 @@
 
   const layerIndexDict = {
     'input': 0,
-    'conv_1_1': 1,
-    'relu_1_1': 2,
-    'conv_1_2': 3,
-    'relu_1_2': 4,
-    'max_pool_1': 5,
-    'conv_2_1': 6,
-    'relu_2_1': 7,
-    'conv_2_2': 8,
-    'relu_2_2': 9,
-    'max_pool_2': 10,
-    'output': 11
+    // 'conv_1_1': 1,
+    // 'relu_1_1': 2,
+    'conv_1_2': 1,
+    'relu_1_2': 2,
+    'max_pool_1': 3,
+    'conv_2_1': 4,
+    'relu_2_1': 5,
+    'conv_2_2': 6,
+    'relu_2_2': 7,
+    'max_pool_2': 8,
+    'output': 9
+    // 'conv_1_2': 3,
+    // 'relu_1_2': 4,
+    // 'max_pool_1': 5,
+    // 'conv_2_1': 6,
+    // 'relu_2_1': 7,
+    // 'conv_2_2': 8,
+    // 'relu_2_2': 9,
+    // 'max_pool_2': 10,
+    // 'output': 11
   }
 
+  // const layerLegendDict = {
+  //   0: {local: 'input-legend', module: 'input-legend', global: 'input-legend'},
+  //   1: {local: 'local-legend-1-1', module: 'module-legend-0', global: 'global-legend'},
+  //   2: {local: 'local-legend-2-1', module: 'module-legend-0', global: 'global-legend'},
+  //   3: {local: 'local-legend-3-2', module: 'module-legend-0', global: 'global-legend'},
+  //   4: {local: 'local-legend-4-2', module: 'module-legend-0', global: 'global-legend'},
+  //   5: {local: 'local-legend-5-2', module: 'module-legend-0', global: 'global-legend'},
+  //   6: {local: 'local-legend-6-1', module: 'module-legend-1', global: 'global-legend'},
+  //   7: {local: 'local-legend-7-1', module: 'module-legend-1', global: 'global-legend'},
+  //   8: {local: 'local-legend-8-2', module: 'module-legend-1', global: 'global-legend'},
+  //   9: {local: 'local-legend-9-2', module: 'module-legend-1', global: 'global-legend'},
+  //   10: {local: 'local-legend-10-2', module: 'module-legend-1', global: 'global-legend'},
+  //   11: {local: 'output-legend', module: 'output-legend', global: 'output-legend'}
+  // }
   const layerLegendDict = {
     0: {local: 'input-legend', module: 'input-legend', global: 'input-legend'},
     1: {local: 'local-legend-0-1', module: 'module-legend-0', global: 'global-legend'},
@@ -965,6 +988,7 @@
         .selectAll('rect.bounding')
         .classed('hidden', false);
     }
+    console.log()
 
     // Highlight the output text
     if (d.layerName === 'output') {
@@ -1553,14 +1577,22 @@
           <i class="fas fa-palette"></i>
         </span>
 
-        <div class="select">
+        <!-- <div class="select">
           <select bind:value={selectedScaleLevel} id="level-select"
             disabled={disableControl}>
             <option value="local">Unit</option>
             <option value="module">Module</option>
             <option value="global">Global</option>
           </select>
-        </div>
+        </div> -->
+        <!-- <div class="select">
+          <select bind:value={selectedScaleLevel} id="level-select"
+            disabled={disableControl}>
+            <option value="local">Unit</option>
+            <option value="module">Module</option>
+            <option value="global">Global</option>
+          </select>
+        </div> -->
       </div>
 
     </div>

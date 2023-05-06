@@ -128,6 +128,7 @@ export const getLinkData = (nodeCoordinate, cnn) => {
       }
     }
   }
+  console.log(linkData)
   return linkData;
 }
 
