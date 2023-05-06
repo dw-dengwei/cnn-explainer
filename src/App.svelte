@@ -7,6 +7,6 @@
 </style>
 
 <div id="app-page">
-	<Header />
+	<!-- <Header /> -->
 	<Explainer />
 </div>

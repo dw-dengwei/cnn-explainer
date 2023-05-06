@@ -1572,7 +1572,7 @@
   </div>
 </div>
 
-<Article/>
+<!-- <Article/> -->
 
 <div id='detailview'>
   {#if selectedNode.data && selectedNode.data.type === 'conv' && selectedNodeIndex != -1}
