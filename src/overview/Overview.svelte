@@ -20,6 +20,7 @@
 
   // Overview functions
   import { loadTrainedModel, constructCNN } from '../utils/cnn-tf.js';
+  import constructCNNFront from '../utils/cnn-front.js'
   import { overviewConfig } from '../config.js';
 
   import {

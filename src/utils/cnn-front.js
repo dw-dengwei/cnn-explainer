@@ -52,14 +52,17 @@ class Link {
   }
 }
 
-const constructCNNFromOutputs = (allOutputs, model, inputImageArray) => {
+export const constructCNNFront = async (allOutputs, model, inputImageArray) => {
+    allOutputs = await fetch('allOutputs.json')
+    model = await fetch('model.json')
+    inputImageArray = await fetch('inputImageArray.json')
     console.log(model)
     console.log(allOutputs)
     let cnn = [];
   
     // Add the first layer (input layer)
     let inputLayer = [];
-    let inputShape = model.layers[0].batchInputShape.slice(1);
+    let inputShape = [64, 64, 3] // model.layers[0].batchInputShape.slice(1);
   
     // First layer's three nodes' outputs are the channels of inputImageArray
     for (let i = 0; i < inputShape[2]; i++) {
