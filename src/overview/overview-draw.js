@@ -354,7 +354,7 @@ const drawLegends = (legends, legendHeight) => {
     .attr('class', 'legend output-legend')
     .attr('id', 'output-legend')
     .classed('hidden', !detailedMode)
-    .attr('transform', `translate(${nodeCoordinate[11][0].x}, ${0})`);
+    .attr('transform', `translate(${nodeCoordinate[11][0].x}, ${0})`);   // TODO: 
   
   outputLegend.append('g')
     .attr('transform', `translate(0, ${legendHeight - 3})`)
