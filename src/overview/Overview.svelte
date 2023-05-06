@@ -41,6 +41,8 @@
 
   // View bindings
   let overviewComponent;
+  let layerNumberSet = new Set([1, 2, 3, 4, 5]);
+  let selectedLayerNumber = 1;
   let scaleLevelSet = new Set(['local', 'module', 'global']);
   let selectedScaleLevel = 'local';
   selectedScaleLevelStore.set(selectedScaleLevel);
@@ -49,6 +51,8 @@
   let svg = undefined;
 
   $: selectedScaleLevel, selectedScaleLevelChanged();
+
+  $: selectedLayerNumber, selectedLayerNumberChanged();
 
   // Configs
   const layerColorScales = overviewConfig.layerColorScales;
@@ -138,8 +142,29 @@
     10 : [300, 270, 490, 290],
   }
 
+  // TODO: modify
   const layerIndexDict = {
     'input': 0,
+    // 'conv_1_1': 1,
+    // 'relu_1_1': 2,
+    'conv_1_2': 1,
+    'relu_1_2': 2,
+    'max_pool_1': 3,
+    'conv_2_1': 4,
+    'relu_2_1': 5,
+    'conv_2_2': 6,
+    'relu_2_2': 7,
+    'max_pool_2': 8,
+    'output': 9
+    // 'conv_1_2': 3,
+    // 'relu_1_2': 4,
+    // 'max_pool_1': 5,
+    // 'conv_2_1': 6,
+    // 'relu_2_1': 7,
+    // 'conv_2_2': 8,
+    // 'relu_2_2': 9,
+    // 'max_pool_2': 10,
+    // 'output': 11
     // 'conv_1_1': 1,
     // 'relu_1_1': 2,
     'conv_1_2': 1,
@@ -210,6 +235,95 @@
   let isExitedFromDetailedView = true;
   let isExitedFromCollapse = true;
   let customImageURL = null;
+
+  async function selectedLayerNumberChanged () {
+    if (svg == undefined) return;
+    console.log(selectedLayerNumber)
+    // Create SVG
+    wholeSvg = d3.select(overviewComponent)
+      .select('#cnn-svg');
+    wholeSvg.select('.main-svg').remove()
+    svg = wholeSvg.append('g')
+      .attr('class', 'main-svg')
+      .attr('transform', `translate(${svgPaddings.left}, 0)`);
+    svgStore.set(svg);
+
+    width = Number(wholeSvg.style('width').replace('px', '')) -
+      svgPaddings.left - svgPaddings.right;
+    height = Number(wholeSvg.style('height').replace('px', '')) -
+      svgPaddings.top - svgPaddings.bottom;
+
+    let cnnGroup = svg.append('g')
+      .attr('class', 'cnn-group');
+    
+    let underGroup = svg.append('g')
+      .attr('class', 'underneath');
+
+    let svgYMid = +wholeSvg.style('height').replace('px', '') / 2;
+    detailedViewAbsCoords = {
+      1 : [600, 100 + svgYMid - 220 / 2, 490, 290],
+      2: [500, 100 + svgYMid - 220 / 2, 490, 290],
+      3 : [700, 100 + svgYMid - 220 / 2, 490, 290],
+      4: [600, 100 + svgYMid - 220 / 2, 490, 290],
+      5: [650, 100 + svgYMid - 220 / 2, 490, 290],
+      6 : [850, 100 + svgYMid - 220 / 2, 490, 290],
+      7 : [100, 100 + svgYMid - 220 / 2, 490, 290],
+      8 : [60, 100 + svgYMid - 220 / 2, 490, 290],
+      9 : [200, 100 + svgYMid - 220 / 2, 490, 290],
+      10 : [300, 100 + svgYMid - 220 / 2, 490, 290],
+    }
+    
+    // Define global arrow marker end
+    svg.append("defs")
+      .append("marker")
+      .attr("id", 'marker')
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 6)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+      .style('stroke-width', 1.2)
+      .style('fill', 'gray')
+      .style('stroke', 'gray')
+      .attr("d", "M0,-5L10,0L0,5");
+
+    // Alternative arrow head style for non-interactive annotation
+    svg.append("defs")
+      .append("marker")
+      .attr("id", 'marker-alt')
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 6)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+      .style('fill', 'none')
+      .style('stroke', 'gray')
+      .style('stroke-width', 2)
+      .attr("d", "M-5,-10L10,0L-5,10");
+    
+    console.time('Construct cnn');
+    model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
+    cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+    console.timeEnd('Construct cnn');
+    cnnStore.set(cnn);
+
+    // Ignore the flatten layer for now
+    let flatten = cnn[cnn.length - 2];
+    cnn.splice(cnn.length - 2, 1);
+    cnn.flatten = flatten;
+    console.log(cnn);
+
+    updateCNNLayerRanges();
+
+    // Create and draw the CNN view
+    drawCNN(width, height, cnnGroup, nodeMouseOverHandler,
+      nodeMouseLeaveHandler, nodeClickHandler);
+  }
+
 
   // Helper functions
   const selectedScaleLevelChanged = () => {
@@ -988,7 +1102,7 @@
         .selectAll('rect.bounding')
         .classed('hidden', false);
     }
-    console.log()
+    // console.log()
 
     // Highlight the output text
     if (d.layerName === 'output') {
@@ -1601,6 +1715,14 @@
 
   <div class="cnn">
     <svg id="cnn-svg"></svg>
+  </div>
+  <div class="select">
+    <select bind:value={selectedLayerNumber} id="level-select"
+      disabled={disableControl}>
+      <option value=1>1</option>
+      <option value=2>2</option>
+      <option value=3>3</option>
+    </select>
   </div>
 </div>
 

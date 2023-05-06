@@ -19,6 +19,6 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
-    "start:dev": "sirv public --single --dev --port 3000"
+    "start:dev": "sirv public --single --dev --port 3006"
   }
 }
