@@ -1,0 +1,19 @@
+<html lang="en">
+    <body>
+        <script>
+        fetch('allOutputs.json')
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+        fetch('inputImageArray.json')
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+        fetch('model.json')
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+        </script>
+        hello
+    </body>
+</html>
