@@ -354,7 +354,7 @@ const drawLegends = (legends, legendHeight) => {
     .attr('class', 'legend output-legend')
     .attr('id', 'output-legend')
     .classed('hidden', !detailedMode)
-    .attr('transform', `translate(${nodeCoordinate[11][0].x}, ${0})`);
+    .attr('transform', `translate(${nodeCoordinate[cnn.length - 1][0].x}, ${0})`);  // TODO: Length DIY
   
   outputLegend.append('g')
     .attr('transform', `translate(0, ${legendHeight - 3})`)
@@ -394,6 +394,15 @@ const drawLegends = (legends, legendHeight) => {
     .style('fill', 'url(#inputGradient)');
 }
 
+const convNumber = () => {
+  let num = 0;
+  for (let i = 0; i < cnn.length; ++i) {
+    if (cnn[i][0].type === 'conv')
+      num++;
+  }
+  return num;
+}
+
 /**
  * Draw the overview
  * @param {number} width Width of the cnn group
@@ -405,10 +414,16 @@ const drawLegends = (legends, legendHeight) => {
  */
 export const drawCNN = (width, height, cnnGroup, nodeMouseOverHandler,
   nodeMouseLeaveHandler, nodeClickHandler) => {
+  
+  let convNum = convNumber();
+  let notConvNum = cnn.length - convNum;
+    
   // Draw the CNN
   // There are 8 short gaps and 5 long gaps
-  hSpaceAroundGap = (width - nodeLength * numLayers) / (8 + 5 * gapRatio);
+  hSpaceAroundGap = (width - nodeLength * numLayers) / ((notConvNum) + (convNum + 1) * gapRatio);
+  // hSpaceAroundGap = (width - nodeLength * numLayers) / ((8) + (5) * gapRatio);    // TODO: 重新算
   hSpaceAroundGapStore.set(hSpaceAroundGap);
+
   let leftAccuumulatedSpace = 0;
 
   // Iterate through the cnn to draw nodes in each layer

@@ -61,6 +61,8 @@ class Link {
  * @param {Tensor} inputImageTensor Loaded input image tensor.
  */
 const constructCNNFromOutputs = (allOutputs, model, inputImageTensor) => {
+  console.log(model)
+  console.log(allOutputs)
   let cnn = [];
 
   // Add the first layer (input layer)
