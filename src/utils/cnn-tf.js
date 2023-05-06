@@ -79,7 +79,7 @@ const constructCNNFromOutputs = (allOutputs, model, inputImageTensor) => {
   cnn.push(inputLayer);
   let curLayerIndex = 1;
 
-  for (let l = 0; l < model.layers.length; l++) {
+  for (let l = 2; l < model.layers.length; l++) {
     let layer = model.layers[l];
     // Get the current output
     let outputs = allOutputs[l].squeeze();

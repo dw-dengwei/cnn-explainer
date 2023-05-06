@@ -216,6 +216,15 @@ const getLegendGradient = (g, colorScale, gradientName, min, max) => {
   }
 }
 
+const getConvIdxs = () => {
+  let idxs = [];
+  for (let i = 0; i < cnn.length; ++i) {
+    if (cnn[i][0].type === 'conv')
+      idxs.push(i)
+  }
+  return idxs;
+}
+
 /**
  * Draw all legends
  * @param {object} legends Parent group
@@ -223,59 +232,98 @@ const getLegendGradient = (g, colorScale, gradientName, min, max) => {
  */
 const drawLegends = (legends, legendHeight) => {
   // Add local legends
-  for (let i = 0; i < 2; i++){
-    let start = 1 + i * 5;
-    let range1 = cnnLayerRanges.local[start];
-    let range2 = cnnLayerRanges.local[start + 2];
+  let convIdxs = getConvIdxs()
+  for (let i = 0; i < convIdxs.length; i++){
+    // let start = 1 + i * 5;
+    // let range1 = cnnLayerRanges.local[start];
+    // let range2 = cnnLayerRanges.local[start + 2];
+    let start = convIdxs[i]
+    let end = 0
+    if (i != convIdxs.length - 1){
+      end = convIdxs[i + 1]
+    }else{
+      end = cnn.length - 1
+    }
+    let numNodes = end - start
+    let range = cnnLayerRanges.local[start]
 
-    let localLegendScale1 = d3.scaleLinear()
-      .range([0, 2 * nodeLength + hSpaceAroundGap - 1.2])
-      .domain([-range1 / 2, range1 / 2]);
-    
-    let localLegendScale2 = d3.scaleLinear()
-      .range([0, 3 * nodeLength + 2 * hSpaceAroundGap - 1.2])
-      .domain([-range2 / 2, range2 / 2]);
+    let localLegendScale = d3.scaleLinear()
+      .range([0, numNodes * nodeLength + (numNodes - 1) * hSpaceAroundGap - 1.2])
+      .domain([-range / 2, range / 2]);
 
-    let localLegendAxis1 = d3.axisBottom()
-      .scale(localLegendScale1)
+    let localLegendAxis = d3.axisBottom()
+      .scale(localLegendScale)
       .tickFormat(d3.format('.2f'))
-      .tickValues([-range1 / 2, 0, range1 / 2]);
-    
-    let localLegendAxis2 = d3.axisBottom()
-      .scale(localLegendScale2)
-      .tickFormat(d3.format('.2f'))
-      .tickValues([-range2 / 2, 0, range2 / 2]);
+      .tickValues([-range / 2, 0, range / 2]);
 
-    let localLegend1 = legends.append('g')
+    let localLegend = legends.append('g')
       .attr('class', 'legend local-legend')
-      .attr('id', `local-legend-${i}-1`)
+      .attr('id', `local-legend-${start}-1`)
       .classed('hidden', !detailedMode || selectedScaleLevel !== 'local')
       .attr('transform', `translate(${nodeCoordinate[start][0].x}, ${0})`);
 
-    localLegend1.append('g')
+    localLegend.append('g')
       .attr('transform', `translate(0, ${legendHeight - 3})`)
-      .call(localLegendAxis1)
+      .call(localLegendAxis)
 
-    localLegend1.append('rect')
-      .attr('width', 2 * nodeLength + hSpaceAroundGap)
-      .attr('height', legendHeight)
-      .style('fill', 'url(#convGradient)');
-
-    let localLegend2 = legends.append('g')
-      .attr('class', 'legend local-legend')
-      .attr('id', `local-legend-${i}-2`)
-      .classed('hidden', !detailedMode || selectedScaleLevel !== 'local')
-      .attr('transform', `translate(${nodeCoordinate[start + 2][0].x}, ${0})`);
-
-    localLegend2.append('g')
-      .attr('transform', `translate(0, ${legendHeight - 3})`)
-      .call(localLegendAxis2)
-
-    localLegend2.append('rect')
-      .attr('width', 3 * nodeLength + 2 * hSpaceAroundGap)
+    localLegend.append('rect')
+      .attr('width', numNodes * nodeLength + (numNodes - 1) * hSpaceAroundGap)
       .attr('height', legendHeight)
       .style('fill', 'url(#convGradient)');
   }
+  // for (let i = 0; i < 2; i++){
+  //   let start = 1 + i * 5;
+  //   let range1 = cnnLayerRanges.local[start];
+  //   let range2 = cnnLayerRanges.local[start + 2];
+
+  //   let localLegendScale1 = d3.scaleLinear()
+  //     .range([0, 2 * nodeLength + hSpaceAroundGap - 1.2])
+  //     .domain([-range1 / 2, range1 / 2]);
+    
+  //   let localLegendScale2 = d3.scaleLinear()
+  //     .range([0, 3 * nodeLength + 2 * hSpaceAroundGap - 1.2])
+  //     .domain([-range2 / 2, range2 / 2]);
+
+  //   let localLegendAxis1 = d3.axisBottom()
+  //     .scale(localLegendScale1)
+  //     .tickFormat(d3.format('.2f'))
+  //     .tickValues([-range1 / 2, 0, range1 / 2]);
+    
+  //   let localLegendAxis2 = d3.axisBottom()
+  //     .scale(localLegendScale2)
+  //     .tickFormat(d3.format('.2f'))
+  //     .tickValues([-range2 / 2, 0, range2 / 2]);
+
+  //   let localLegend1 = legends.append('g')
+  //     .attr('class', 'legend local-legend')
+  //     .attr('id', `local-legend-${i}-1`)
+  //     .classed('hidden', !detailedMode || selectedScaleLevel !== 'local')
+  //     .attr('transform', `translate(${nodeCoordinate[start][0].x}, ${0})`);
+
+  //   localLegend1.append('g')
+  //     .attr('transform', `translate(0, ${legendHeight - 3})`)
+  //     .call(localLegendAxis1)
+
+  //   localLegend1.append('rect')
+  //     .attr('width', 2 * nodeLength + hSpaceAroundGap)
+  //     .attr('height', legendHeight)
+  //     .style('fill', 'url(#convGradient)');
+
+  //   let localLegend2 = legends.append('g')
+  //     .attr('class', 'legend local-legend')
+  //     .attr('id', `local-legend-${i}-2`)
+  //     .classed('hidden', !detailedMode || selectedScaleLevel !== 'local')
+  //     .attr('transform', `translate(${nodeCoordinate[start + 2][0].x}, ${0})`);
+
+  //   localLegend2.append('g')
+  //     .attr('transform', `translate(0, ${legendHeight - 3})`)
+  //     .call(localLegendAxis2)
+
+  //   localLegend2.append('rect')
+  //     .attr('width', 3 * nodeLength + 2 * hSpaceAroundGap)
+  //     .attr('height', legendHeight)
+  //     .style('fill', 'url(#convGradient)');
+  // }
 
   // Add module legends
   for (let i = 0; i < 2; i++){
