@@ -1,18 +1,25 @@
 <html lang="en">
     <body>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script>
-        fetch('allOutputs.json')
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
-        fetch('inputImageArray.json')
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
-        fetch('model.json')
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
+        var allOutputs =  $.parseJSON($.ajax({
+            url: "allOutputs.json",//json文件位置，文件名
+            dataType: "json", //返回数据格式为json
+            async: false
+        }).responseText);
+        var inputImageArray =  $.parseJSON($.ajax({
+            url: "inputImageArray.json",//json文件位置，文件名
+            dataType: "json", //返回数据格式为json
+            async: false
+        }).responseText);
+        var model =  $.parseJSON($.ajax({
+            url: "model.json",//json文件位置，文件名
+            dataType: "json", //返回数据格式为json
+            async: false
+        }).responseText);
+        console.log(allOutputs)
+        console.log(inputImageArray)
+        console.log(model)
         </script>
         hello
     </body>
