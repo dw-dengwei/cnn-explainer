@@ -7,7 +7,7 @@
     needRedrawStore, cnnLayerMinMaxStore, detailedModeStore,
     shouldIntermediateAnimateStore, isInSoftmaxStore, softmaxDetailViewStore,
     hoverInfoStore, allowsSoftmaxAnimationStore, modalStore,
-    intermediateLayerPositionStore
+    intermediateLayerPositionStore, layerIndexDictStore, numLayersStore
   } from '../stores.js';
 
   // Svelte views
@@ -59,7 +59,7 @@
   const layerColorScales = overviewConfig.layerColorScales;
   const nodeLength = overviewConfig.nodeLength;
   const plusSymbolRadius = overviewConfig.plusSymbolRadius;
-  const numLayers = overviewConfig.numLayers;
+  // const numLayers = overviewConfig.numLayers;
   const edgeOpacity = overviewConfig.edgeOpacity;
   const edgeInitColor = overviewConfig.edgeInitColor;
   const edgeHoverColor = overviewConfig.edgeHoverColor;
@@ -116,6 +116,9 @@
   let intermediateLayerPosition = undefined;
   intermediateLayerPositionStore.subscribe ( value => {intermediateLayerPosition = value;} )
 
+  let numLayers = undefined
+  numLayersStore.subscribe ( value => {numLayers = value;} )
+
   let width = undefined;
   let height = undefined;
   let model = undefined;
@@ -144,30 +147,10 @@
   }
 
   // TODO: modify
-  const layerIndexDict = {
+  let layerIndexDict = {
     'input': 0,
     'conv_1_1': 1,
     'relu_1_1': 2,
-    // 'conv_1_2': 1,
-    // 'relu_1_2': 2,
-    // 'max_pool_1': 3,
-    // 'conv_2_1': 4,
-    // 'relu_2_1': 5,
-    // 'conv_2_2': 6,
-    // 'relu_2_2': 7,
-    // 'max_pool_2': 8,
-    // 'output': 9
-    // 'conv_1_2': 3,
-    // 'relu_1_2': 4,
-    // 'max_pool_1': 5,
-    // 'conv_2_1': 6,
-    // 'relu_2_1': 7,
-    // 'conv_2_2': 8,
-    // 'relu_2_2': 9,
-    // 'max_pool_2': 10,
-    // 'output': 11
-    // 'conv_1_1': 1,
-    // 'relu_1_1': 2,
     'conv_1_2': 3,
     'relu_1_2': 4,
     'max_pool_1': 5,
@@ -178,7 +161,7 @@
     'max_pool_2': 10,
     'output': 11
   }
-
+  layerIndexDictStore.set(layerIndexDict)
   // const layerLegendDict = {
   //   0: {local: 'input-legend', module: 'input-legend', global: 'input-legend'},
   //   1: {local: 'local-legend-1-1', module: 'module-legend-0', global: 'global-legend'},
@@ -227,6 +210,15 @@
   let isExitedFromDetailedView = true;
   let isExitedFromCollapse = true;
   let customImageURL = null;
+
+  const updateCNNDict = (cnn) => {
+    layerIndexDict = {};
+    for (let l = 0; l < cnn.length; ++l) {
+      layerIndexDict[cnn[l][0].layerName] = l;
+    }
+    layerIndexDictStore.set(layerIndexDict)
+  }
+
 
   async function selectedLayerNumberChanged () {
     if (svg == undefined) return;
@@ -309,6 +301,8 @@
     cnn.splice(cnn.length - 2, 1);
     cnn.flatten = flatten;
     console.log(cnn);
+
+    updateCNNDict(cnn);   // update layerIndexDict
 
     updateCNNLayerRanges();
 
@@ -1025,18 +1019,26 @@
     if ((d.type === 'conv' || d.layerName === 'output') && !isInIntermediateView) {
       prepareToEnterIntermediateView(d, g, nodeIndex, curLayerIndex);
 
-      if (d.layerName === 'conv_1_1') {
-        drawConv1(curLayerIndex, d, nodeIndex, width, height,
+      if (d.layerName.includes('conv')){
+        if (d.layerName.includes('conv_1')) {
+          drawConv1(curLayerIndex, d, nodeIndex, width, height,
+            intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
+            intermediateNodeClicked);
+        }
+
+        else if (d.layerName[5] < '3') {
+        // else if (d.layerName === 'conv_1_2') {
+          drawConv2(curLayerIndex, d, nodeIndex, width, height,
+            intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
+            intermediateNodeClicked);
+        }
+        else if (d.layerName[5] >= '3') {
+        // else if (d.layerName === 'conv_1_2') {
+          drawConv4(curLayerIndex, d, nodeIndex, width, height,
           intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
           intermediateNodeClicked);
+        }
       }
-
-      else if (d.layerName === 'conv_1_2') {
-        drawConv2(curLayerIndex, d, nodeIndex, width, height,
-          intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
-          intermediateNodeClicked);
-      }
-
       else if (d.layerName === 'conv_2_1') {
         drawConv3(curLayerIndex, d, nodeIndex, width, height,
           intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,

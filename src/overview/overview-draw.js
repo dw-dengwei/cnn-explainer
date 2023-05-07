@@ -3,7 +3,7 @@
 import {
   svgStore, vSpaceAroundGapStore, hSpaceAroundGapStore, cnnStore,
   nodeCoordinateStore, selectedScaleLevelStore, cnnLayerRangesStore,
-  detailedModeStore, cnnLayerMinMaxStore, hoverInfoStore
+  detailedModeStore, cnnLayerMinMaxStore, hoverInfoStore, numLayersStore
 } from '../stores.js';
 import {
   getExtent, getLinkData
@@ -13,7 +13,7 @@ import { overviewConfig } from '../config.js';
 // Configs
 const layerColorScales = overviewConfig.layerColorScales;
 const nodeLength = overviewConfig.nodeLength;
-const numLayers = overviewConfig.numLayers;
+// const numLayers = overviewConfig.numLayers;
 const edgeOpacity = overviewConfig.edgeOpacity;
 const edgeInitColor = overviewConfig.edgeInitColor;
 const edgeStrokeWidth = overviewConfig.edgeStrokeWidth;
@@ -49,6 +49,9 @@ cnnLayerMinMaxStore.subscribe( value => {cnnLayerMinMax = value;} )
 
 let detailedMode = undefined;
 detailedModeStore.subscribe( value => {detailedMode = value;} )
+
+let numLayers = undefined
+numLayersStore.subscribe ( value => {numLayers = value;} )
 
 /**
  * Use bounded d3 data to draw one canvas
@@ -474,6 +477,7 @@ export const drawCNN = (width, height, cnnGroup, nodeMouseOverHandler,
 
   let leftAccuumulatedSpace = 0;
 
+  nodeCoordinate = [];
   // Iterate through the cnn to draw nodes in each layer
   for (let l = 0; l < cnn.length; l++) {
     let curLayer = cnn[l];

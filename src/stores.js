@@ -27,3 +27,7 @@ export const hoverInfoStore = writable({});
 export const modalStore = writable({});
 
 export const intermediateLayerPositionStore = writable({});
+
+export const layerIndexDictStore = writable({});
+
+export const numLayersStore = writable(12);

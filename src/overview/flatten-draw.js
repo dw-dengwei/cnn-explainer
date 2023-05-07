@@ -4,7 +4,7 @@ import {
   svgStore, vSpaceAroundGapStore, hSpaceAroundGapStore, cnnStore,
   nodeCoordinateStore, selectedScaleLevelStore, cnnLayerRangesStore,
   cnnLayerMinMaxStore, isInSoftmaxStore, softmaxDetailViewStore,
-  hoverInfoStore, allowsSoftmaxAnimationStore, detailedModeStore
+  hoverInfoStore, allowsSoftmaxAnimationStore, detailedModeStore, layerIndexDictStore
 } from '../stores.js';
 import {
   getOutputKnot, getInputKnot, gappedColorScale, getMidCoords
@@ -66,20 +66,24 @@ hoverInfoStore.subscribe( value => {hoverInfo = value;} )
 let detailedMode = undefined;
 detailedModeStore.subscribe( value => {detailedMode = value;} )
 
-let layerIndexDict = {
-  'input': 0,
-  'conv_1_1': 1,
-  'relu_1_1': 2,
-  'conv_1_2': 3,
-  'relu_1_2': 4,
-  'max_pool_1': 5,
-  'conv_2_1': 6,
-  'relu_2_1': 7,
-  'conv_2_2': 8,
-  'relu_2_2': 9,
-  'max_pool_2': 10,
-  'output': 11
-}
+let layerIndexDict = undefined;
+layerIndexDictStore.subscribe( value => {layerIndexDict = value;} )
+
+
+// let layerIndexDict = {
+//   'input': 0,
+//   'conv_1_1': 1,
+//   'relu_1_1': 2,
+//   'conv_1_2': 3,
+//   'relu_1_2': 4,
+//   'max_pool_1': 5,
+//   'conv_2_1': 6,
+//   'relu_2_1': 7,
+//   'conv_2_2': 8,
+//   'relu_2_2': 9,
+//   'max_pool_2': 10,
+//   'output': 11
+// }
 
 let hasInitialized = false;
 let logits = [];
@@ -1520,9 +1524,9 @@ export const drawFlatten = (curLayerIndex, d, i, width, height) => {
     .append('tspan')
     .text('flatten');
   
-  let dimension = cnn[layerIndexDict['max_pool_2']].length * 
-    cnn[layerIndexDict['max_pool_2']][0].output.length *
-    cnn[layerIndexDict['max_pool_2']][0].output[0].length;
+  let dimension = cnn[cnn.length - 2].length * 
+    cnn[cnn.length - 2][0].output.length *
+    cnn[cnn.length - 2][0].output[0].length;
 
   detailedLabelText.append('tspan')
     .attr('x', 0)
@@ -1563,7 +1567,7 @@ export const drawFlatten = (curLayerIndex, d, i, width, height) => {
     legendHeight: 5,
     curLayerIndex: curLayerIndex,
     range: range,
-    minMax: cnnLayerMinMax[10],
+    minMax: cnnLayerMinMax[cnn.length - 2],
     group: intermediateLayer,
     width: intermediateGap + nodeLength - 3,
     x: leftX,

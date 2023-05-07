@@ -4,7 +4,7 @@ import {
   svgStore, vSpaceAroundGapStore, hSpaceAroundGapStore, cnnStore,
   nodeCoordinateStore, selectedScaleLevelStore, cnnLayerRangesStore,
   needRedrawStore, cnnLayerMinMaxStore, shouldIntermediateAnimateStore,
-  hoverInfoStore, detailedModeStore, intermediateLayerPositionStore
+  hoverInfoStore, detailedModeStore, intermediateLayerPositionStore, numLayersStore
 } from '../stores.js';
 import {
   getExtent, getOutputKnot, getInputKnot, gappedColorScale
@@ -23,7 +23,7 @@ import { overviewConfig } from '../config.js';
 const layerColorScales = overviewConfig.layerColorScales;
 const nodeLength = overviewConfig.nodeLength;
 const plusSymbolRadius = overviewConfig.plusSymbolRadius;
-const numLayers = overviewConfig.numLayers;
+// const numLayers = overviewConfig.numLayers;
 const intermediateColor = overviewConfig.intermediateColor;
 const kernelRectLength = overviewConfig.kernelRectLength;
 const svgPaddings = overviewConfig.svgPaddings;
@@ -70,6 +70,10 @@ detailedModeStore.subscribe( value => {detailedMode = value;} )
 
 let intermediateLayerPosition = undefined;
 intermediateLayerPositionStore.subscribe ( value => {intermediateLayerPosition = value;} )
+
+let numLayers = undefined
+numLayersStore.subscribe ( value => {numLayers = value;} )
+
 
 // let curRightX = 0;
 
@@ -1201,7 +1205,7 @@ export const drawConv1 = (curLayerIndex, d, i, width, height,
   let leftX = nodeCoordinate[curLayerIndex - 1][0].x;
 
   // Record the left x position for dynamic detial view positioning
-  intermediateLayerPosition['conv_1_1'] = targetX + nodeLength;
+  intermediateLayerPosition[d.layerName] = targetX + nodeLength;
   intermediateLayerPositionStore.set(intermediateLayerPosition);
 
   // Hide the edges
@@ -1340,7 +1344,7 @@ export const drawConv2 = (curLayerIndex, d, i, width, height,
   let intermediateGap = (hSpaceAroundGap * gapRatio * 2) / 3;
 
   // Record the left x position for dynamic detial view positioning
-  intermediateLayerPosition['conv_1_2'] = targetX + nodeLength;
+  intermediateLayerPosition[d.layerName] = targetX + nodeLength;
   intermediateLayerPositionStore.set(intermediateLayerPosition);
 
   // Make sure two layers have the same range
@@ -1472,22 +1476,21 @@ export const drawConv3 = (curLayerIndex, d, i, width, height,
   let intermediateGap = (hSpaceAroundGap * gapRatio * 2) / 3;
 
   // Record the left x position for dynamic detial view positioning
-  intermediateLayerPosition['conv_2_1'] = targetX + nodeLength;
+  intermediateLayerPosition[d.layerName] = targetX + nodeLength;
   intermediateLayerPositionStore.set(intermediateLayerPosition);
+
+  // Make sure two layers have the same range
+  let {range, minMax} = redrawLayerIfNeeded(curLayerIndex, i);
 
   // Hide the edges
   svg.select('g.edge-group')
     .style('visibility', 'hidden');
 
-  // Make sure two layers have the same range
-  let {range, minMax} = redrawLayerIfNeeded(curLayerIndex, i);
-
   // Move the previous layer
   moveLayerX({layerIndex: curLayerIndex - 1, targetX: leftX,
     disable: true, delay: 0});
 
-  moveLayerX({layerIndex: curLayerIndex,
-    targetX: targetX, disable: true,
+  moveLayerX({layerIndex: curLayerIndex, targetX: targetX, disable: true,
     delay: 0, opacity: 0.15, specialIndex: i});
 
   // Compute the gap in the left shrink region
@@ -1607,7 +1610,7 @@ export const drawConv4 = (curLayerIndex, d, i, width, height,
   let intermediateGap = (hSpaceAroundGap * gapRatio * 2) / 3;
 
   // Record the left x position for dynamic detial view positioning
-  intermediateLayerPosition['conv_2_2'] = leftX;
+  intermediateLayerPosition[d.layerName] = leftX;
   intermediateLayerPositionStore.set(intermediateLayerPosition);
 
   // Hide the edges

@@ -15,7 +15,7 @@ let nodeLength = 40;
 export const overviewConfig = {
   nodeLength : nodeLength,
   plusSymbolRadius : nodeLength / 5,
-  numLayers : 12,
+  // numLayers : 12,
   edgeOpacity : 0.8,
   edgeInitColor : 'rgb(230, 230, 230)',
   edgeHoverColor : 'rgb(130, 130, 130)',
