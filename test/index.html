@@ -1,25 +1,11 @@
 <html lang="en">
     <body>
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script>
-        var allOutputs =  $.parseJSON($.ajax({
-            url: "allOutputs.json",//json文件位置，文件名
-            dataType: "json", //返回数据格式为json
-            async: false
-        }).responseText);
-        var inputImageArray =  $.parseJSON($.ajax({
-            url: "inputImageArray.json",//json文件位置，文件名
-            dataType: "json", //返回数据格式为json
-            async: false
-        }).responseText);
-        var model =  $.parseJSON($.ajax({
-            url: "model.json",//json文件位置，文件名
-            dataType: "json", //返回数据格式为json
-            async: false
-        }).responseText);
-        console.log(allOutputs)
-        console.log(inputImageArray)
-        console.log(model)
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.open('POST', 'http://10.112.35.137:5000/get_model', false);
+            httpRequest.send();
+            const res = httpRequest.responseText
+            console.log(JSON.parse(res))
         </script>
         hello
     </body>
