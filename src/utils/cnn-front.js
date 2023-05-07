@@ -1,5 +1,8 @@
 /* global tf */
 
+import {allOutputsjson} from '../../test/allOutputs'
+import {model} from '../../test/model'
+import {inputImageArrayjson} from '../../test/inputImageArray'
 // Network input image size
 const networkInputSize = 64;
 
@@ -51,12 +54,28 @@ class Link {
     this.weight = weight;
   }
 }
+// allOutputs, model, inputImageArray
+export const constructCNNFront = async () => {
+    // const xhr = new XMLHttpRequest();
+    // xhr.onreadystatechange = function() {
+    //     if (xhr.readyState === 4 && xhr.status === 200) {
+    //         allOutputs = JSON.parse(xhr.responseText);
+    //     }
+    // };
+    // xhr.open("GET", "allOutputs.json", true);
+    // xhr.send();
+    // allOutputs = await (await fetch('allOutputs.json')).json()
+    // model = await (await fetch('model.json')).json()
 
-export const constructCNNFront = async (allOutputs, model, inputImageArray) => {
-    allOutputs = await fetch('allOutputs.json')
-    model = await fetch('model.json')
-    inputImageArray = await fetch('inputImageArray.json')
-    console.log(model)
+    // inputImageArray = await fetch('inputImageArray.json')
+    // console.log(model)
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.open('POST', 'http://10.112.35.137:5000/get_model', false);
+    httpRequest.send();
+    const res = httpRequest.responseText
+    console.log(JSON.parse(res))
+    let allOutputs = allOutputsjson['allOutputs']
+    let inputImageArray = inputImageArrayjson['inputImageArray']
     console.log(allOutputs)
     let cnn = [];
   
@@ -99,9 +118,9 @@ export const constructCNNFront = async (allOutputs, model, inputImageArray) => {
       // Construct this layer based on its layer type
       switch (curLayerType) {
         case nodeType.CONV: {
-          let biases = layer.bias.val.arraySync();
+          let biases = layer.bias;
           // The new order is [output_depth, input_depth, height, width]
-          let weights = layer.kernel.val.transpose([3, 2, 0, 1]).arraySync();
+          let weights = layer.kernel;
   
           // Add nodes into this layer
           for (let i = 0; i < outputs.length; i++) {
@@ -165,6 +184,7 @@ export const constructCNNFront = async (allOutputs, model, inputImageArray) => {
             // RELU and POOL layers have no weights. Links are one-to-one
             let preNode = cnn[curLayerIndex - 1][i];
             let link = new Link(preNode, node, weight);
+            console.log(l, i, preNode)
             preNode.outputLinks.push(link);
             node.inputLinks.push(link);
   

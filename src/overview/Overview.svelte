@@ -20,7 +20,7 @@
 
   // Overview functions
   import { loadTrainedModel, constructCNN } from '../utils/cnn-tf.js';
-  import constructCNNFront from '../utils/cnn-front.js'
+  import { constructCNNFront } from '../utils/cnn-front.js';
   import { overviewConfig } from '../config.js';
 
   import {
@@ -146,17 +146,17 @@
   // TODO: modify
   const layerIndexDict = {
     'input': 0,
-    // 'conv_1_1': 1,
-    // 'relu_1_1': 2,
-    'conv_1_2': 1,
-    'relu_1_2': 2,
-    'max_pool_1': 3,
-    'conv_2_1': 4,
-    'relu_2_1': 5,
-    'conv_2_2': 6,
-    'relu_2_2': 7,
-    'max_pool_2': 8,
-    'output': 9
+    'conv_1_1': 1,
+    'relu_1_1': 2,
+    // 'conv_1_2': 1,
+    // 'relu_1_2': 2,
+    // 'max_pool_1': 3,
+    // 'conv_2_1': 4,
+    // 'relu_2_1': 5,
+    // 'conv_2_2': 6,
+    // 'relu_2_2': 7,
+    // 'max_pool_2': 8,
+    // 'output': 9
     // 'conv_1_2': 3,
     // 'relu_1_2': 4,
     // 'max_pool_1': 5,
@@ -168,24 +168,15 @@
     // 'output': 11
     // 'conv_1_1': 1,
     // 'relu_1_1': 2,
-    'conv_1_2': 1,
-    'relu_1_2': 2,
-    'max_pool_1': 3,
-    'conv_2_1': 4,
-    'relu_2_1': 5,
-    'conv_2_2': 6,
-    'relu_2_2': 7,
-    'max_pool_2': 8,
-    'output': 9
-    // 'conv_1_2': 3,
-    // 'relu_1_2': 4,
-    // 'max_pool_1': 5,
-    // 'conv_2_1': 6,
-    // 'relu_2_1': 7,
-    // 'conv_2_2': 8,
-    // 'relu_2_2': 9,
-    // 'max_pool_2': 10,
-    // 'output': 11
+    'conv_1_2': 3,
+    'relu_1_2': 4,
+    'max_pool_1': 5,
+    'conv_2_1': 6,
+    'relu_2_1': 7,
+    'conv_2_2': 8,
+    'relu_2_2': 9,
+    'max_pool_2': 10,
+    'output': 11
   }
 
   // const layerLegendDict = {
@@ -307,8 +298,9 @@
       .attr("d", "M-5,-10L10,0L-5,10");
     
     console.time('Construct cnn');
-    model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
-    cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+    // model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
+    // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+    cnn = await constructCNNFront();
     console.timeEnd('Construct cnn');
     cnnStore.set(cnn);
 
