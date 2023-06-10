@@ -243,7 +243,7 @@
     console.time('Construct cnn');
     // model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
     // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
-    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`);
+    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`, true, selectedLayerNumber);
     cnn = cnn_max[0];
     max_class = classLists[cnn_max[1]];
     maxClassChanged();
@@ -1281,7 +1281,7 @@
     console.time('Construct cnn');
     // model = await loadTrainedModel(`PUBLIC_URL/assets/data/model.json`);
     // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
-    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`, true);
+    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`, true, selectedLayerNumber);
     cnn = cnn_max[0];
     // max_class = classLists[cnn_max[1]];
     console.timeEnd('Construct cnn');
@@ -1322,10 +1322,24 @@
     isPause = !isPause;
   }
 
-  function refreshCNN(){
+  async function refreshCNN(){
     let showTime = stepNumber;
     document.getElementById("clockTime").innerHTML = "Epoch num: " + showTime;
-    selectedLayerNumberChanged()
+    // selectedLayerNumberChanged()
+    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`);
+    cnn = cnn_max[0];
+    max_class = classLists[cnn_max[1]];
+    maxClassChanged();
+
+    // Ignore the flatten layer for now
+    let flatten = cnn[cnn.length - 2];
+    cnn.splice(cnn.length - 2, 1);
+    cnn.flatten = flatten;
+    cnnStore.set(cnn);
+
+    // Update all scales used in the CNN view
+    updateCNNLayerRanges();
+    updateCNN();
     stepNumber++;
     // drawCNN(width, height, cnnGroup, nodeMouseOverHandler,
     //   nodeMouseLeaveHandler, nodeClickHandler);
@@ -1891,6 +1905,18 @@
     justify-content: space-between;
   }
 
+  #selectLayer {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex: 1;
+  }
+
+  /* #selectLayer select {
+    border: none;
+    padding: 0;
+  } */
+
   #clockTime {
     flex: 1;
     text-align: center;
@@ -2176,14 +2202,6 @@
   <div class="cnn">
     <svg id="cnn-svg"></svg>
   </div>
-  <div class="select">
-    <select bind:value={selectedLayerNumber} id="level-select"
-      disabled={disableControl}>
-      <option value=1>1</option>
-      <option value=2>2</option>
-      <option value=3>3</option>
-    </select>
-  </div>
 </div>
 <!-- <div id="top-controls">
   <div class="container l--page">
@@ -2207,6 +2225,14 @@
   </div>
 </div> -->
 <div id="CZJcontainer">
+  <div class="select" id="selectLayer">
+    <select bind:value={selectedLayerNumber} id="level-select"
+      disabled={disableControl}>
+      <option value=1>1</option>
+      <option value=2>2</option>
+      <option value=3>3</option>
+    </select>
+  </div>
   <div id="clockTime">Epoch num: 0</div>
   <div id="maxClass">Predict: none</div>
 </div>

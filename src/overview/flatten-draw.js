@@ -1006,10 +1006,12 @@ export const drawFlatten = (curLayerIndex, d, i, width, height) => {
 
   let pixelWidth = nodeLength / 2;
   let pixelHeight = 1.1;
+  let mul = cnn.length / 3;
   let totalLength = (2 * nodeLength +
-    5.5 * hSpaceAroundGap * gapRatio + pixelWidth);
+    mul * hSpaceAroundGap * gapRatio + pixelWidth);
   let leftX = nodeCoordinate[curLayerIndex][0].x - totalLength;
-  let intermediateGap = (hSpaceAroundGap * gapRatio * 4) / 2;
+  mul = mul - 1;
+  let intermediateGap = (hSpaceAroundGap * gapRatio * mul) / 2;
   const minimumGap = 20;
   let linkGen = d3.linkHorizontal()
     .x(d => d.x)
@@ -1030,7 +1032,8 @@ export const drawFlatten = (curLayerIndex, d, i, width, height) => {
   
   // Compute the gap in the left shrink region
   let leftEnd = leftX - hSpaceAroundGap;
-  let leftGap = (leftEnd - nodeCoordinate[0][0].x - 10 * nodeLength) / 10;
+  let factor = cnn.length - 2;
+  let leftGap = (leftEnd - nodeCoordinate[0][0].x - factor * nodeLength) / factor;
 
   // Different from other intermediate view, we push the left part dynamically
   // 1. If there is enough space, we fix the first layer position and move all
