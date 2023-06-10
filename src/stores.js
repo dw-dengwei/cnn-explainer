@@ -30,4 +30,5 @@ export const intermediateLayerPositionStore = writable({});
 
 export const layerIndexDictStore = writable({});
 
-export const numLayersStore = writable(12);
+// export const numLayersStore = writable(12);
+export const numLayersStore = writable(undefined);

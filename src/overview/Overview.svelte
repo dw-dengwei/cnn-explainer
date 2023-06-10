@@ -50,10 +50,13 @@
   let previousSelectedScaleLevel = selectedScaleLevel;
   let wholeSvg = undefined;
   let svg = undefined;
+  let max_class;
 
   $: selectedScaleLevel, selectedScaleLevelChanged();
 
   $: selectedLayerNumber, selectedLayerNumberChanged();
+
+  // $: max_class, maxClassChanged();
 
   // Configs
   const layerColorScales = overviewConfig.layerColorScales;
@@ -192,18 +195,18 @@
   }
 
   let imageOptions = [
-    {file: 'boat_1.jpeg', class: 'lifeboat'},
-    {file: 'bug_1.jpeg', class: 'ladybug'},
-    {file: 'pizza_1.jpeg', class: 'pizza'},
-    {file: 'pepper_1.jpeg', class: 'bell pepper'},
-    {file: 'bus_1.jpeg', class: 'bus'},
-    {file: 'koala_1.jpeg', class: 'koala'},
-    {file: 'espresso_1.jpeg', class: 'espresso'},
-    {file: 'panda_1.jpeg', class: 'red panda'},
-    {file: 'orange_1.jpeg', class: 'orange'},
-    {file: 'car_1.jpeg', class: 'sport car'}
+    {file: '0.png', class: 'airplane'},
+    {file: '1.png', class: 'automobile'},
+    {file: '2.png', class: 'bird'},
+    {file: '3.png', class: 'cat'},
+    {file: '4.png', class: 'deer'},
+    {file: '5.png', class: 'dog'},
+    {file: '6.png', class: 'frog'},
+    {file: '7.png', class: 'horse'},
+    {file: '8.png', class: 'ship'},
+    {file: '9.png', class: 'trucl'}
   ];
-  let selectedImage = imageOptions[6].file;
+  let selectedImage = imageOptions[7].file;
 
   let nodeData;
   let selectedNodeIndex = -1;
@@ -211,14 +214,24 @@
   let isExitedFromCollapse = true;
   let customImageURL = null;
 
+  let timer = null;
+  let isPause = true;
+  let stepNumber = 1;
+
   const updateCNNDict = (cnn) => {
     layerIndexDict = {};
     for (let l = 0; l < cnn.length; ++l) {
       layerIndexDict[cnn[l][0].layerName] = l;
     }
     layerIndexDictStore.set(layerIndexDict)
+    // TODO: modify
+    numLayersStore.set(cnn.length);
   }
 
+
+  const maxClassChanged = () => {
+    document.getElementById("maxClass").innerHTML = "Predict: " + max_class;
+  }
 
   async function selectedLayerNumberChanged () {
     if (svg == undefined) return;
@@ -226,6 +239,26 @@
     // Create SVG
     wholeSvg = d3.select(overviewComponent)
       .select('#cnn-svg');
+
+    console.time('Construct cnn');
+    // model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
+    // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`);
+    cnn = cnn_max[0];
+    max_class = classLists[cnn_max[1]];
+    maxClassChanged();
+    console.timeEnd('Construct cnn');
+    cnnStore.set(cnn);
+
+    // Ignore the flatten layer for now
+    let flatten = cnn[cnn.length - 2];
+    cnn.splice(cnn.length - 2, 1);
+    cnn.flatten = flatten;
+    console.log(cnn);
+
+    updateCNNDict(cnn);   // update layerIndexDict
+    updateCNNLayerRanges();
+    
     wholeSvg.select('.main-svg').remove()
     svg = wholeSvg.append('g')
       .attr('class', 'main-svg')
@@ -288,23 +321,6 @@
       .style('stroke', 'gray')
       .style('stroke-width', 2)
       .attr("d", "M-5,-10L10,0L-5,10");
-    
-    console.time('Construct cnn');
-    // model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
-    // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
-    cnn = await constructCNNFront();
-    console.timeEnd('Construct cnn');
-    cnnStore.set(cnn);
-
-    // Ignore the flatten layer for now
-    let flatten = cnn[cnn.length - 2];
-    cnn.splice(cnn.length - 2, 1);
-    cnn.flatten = flatten;
-    console.log(cnn);
-
-    updateCNNDict(cnn);   // update layerIndexDict
-
-    updateCNNLayerRanges();
 
     // Create and draw the CNN view
     drawCNN(width, height, cnnGroup, nodeMouseOverHandler,
@@ -1019,25 +1035,41 @@
     if ((d.type === 'conv' || d.layerName === 'output') && !isInIntermediateView) {
       prepareToEnterIntermediateView(d, g, nodeIndex, curLayerIndex);
 
+      let middle = cnn.length / 2;
       if (d.layerName.includes('conv')){
         if (d.layerName.includes('conv_1')) {
           drawConv1(curLayerIndex, d, nodeIndex, width, height,
             intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
             intermediateNodeClicked);
         }
-
-        else if (d.layerName[5] < '3') {
-        // else if (d.layerName === 'conv_1_2') {
+        else if (curLayerIndex + 1 <= middle) {
           drawConv2(curLayerIndex, d, nodeIndex, width, height,
             intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
             intermediateNodeClicked);
         }
-        else if (d.layerName[5] >= '3') {
-        // else if (d.layerName === 'conv_1_2') {
+        else if (curLayerIndex + 1 > middle) {
           drawConv4(curLayerIndex, d, nodeIndex, width, height,
           intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
           intermediateNodeClicked);
         }
+        // if (d.layerName.includes('conv_1')) {
+        //   drawConv1(curLayerIndex, d, nodeIndex, width, height,
+        //     intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
+        //     intermediateNodeClicked);
+        // }
+
+        // else if (d.layerName[5] < '3') {
+        // // else if (d.layerName === 'conv_1_2') {
+        //   drawConv2(curLayerIndex, d, nodeIndex, width, height,
+        //     intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
+        //     intermediateNodeClicked);
+        // }
+        // else if (d.layerName[5] >= '3') {
+        // // else if (d.layerName === 'conv_1_2') {
+        //   drawConv4(curLayerIndex, d, nodeIndex, width, height,
+        //   intermediateNodeMouseOverHandler, intermediateNodeMouseLeaveHandler,
+        //   intermediateNodeClicked);
+        // }
       }
       else if (d.layerName === 'conv_2_1') {
         drawConv3(curLayerIndex, d, nodeIndex, width, height,
@@ -1247,8 +1279,11 @@
       .attr("d", "M-5,-10L10,0L-5,10");
     
     console.time('Construct cnn');
-    model = await loadTrainedModel('PUBLIC_URL/assets/data/model.json');
-    cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+    // model = await loadTrainedModel(`PUBLIC_URL/assets/data/model.json`);
+    // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`, true);
+    cnn = cnn_max[0];
+    // max_class = classLists[cnn_max[1]];
     console.timeEnd('Construct cnn');
     cnnStore.set(cnn);
 
@@ -1258,12 +1293,43 @@
     cnn.flatten = flatten;
     console.log(cnn);
 
+    updateCNNDict(cnn);   // update layerIndexDict
     updateCNNLayerRanges();
 
     // Create and draw the CNN view
     drawCNN(width, height, cnnGroup, nodeMouseOverHandler,
       nodeMouseLeaveHandler, nodeClickHandler);
   })
+
+  const pauseButtonClicked = () => {
+    // 获取按钮和图标元素
+    // var button = document.getElementById("play-pause-button");
+    // var iconPlay = button.querySelector("play");
+    // var iconPause = button.querySelector("pause");;
+    // button.insertBefore(iconPause, iconPlay);
+    // iconPlay.classList.toggle("iconhidden");
+    // iconPause.classList.toggle("iconhidden");
+    if(isPause){
+      //设置定时器，自动更新时间显示
+      timer = setInterval(refreshCNN, 3000);
+      document.getElementById("pauseButton").innerHTML = "pause";
+      refreshCNN();
+    }
+    else{
+      document.getElementById("pauseButton").innerHTML = "continue";
+      clearInterval(timer);
+    }
+    isPause = !isPause;
+  }
+
+  function refreshCNN(){
+    let showTime = stepNumber;
+    document.getElementById("clockTime").innerHTML = "Epoch num: " + showTime;
+    selectedLayerNumberChanged()
+    stepNumber++;
+    // drawCNN(width, height, cnnGroup, nodeMouseOverHandler,
+    //   nodeMouseLeaveHandler, nodeClickHandler);
+  }
 
   const detailedButtonClicked = () => {
     detailedMode = !detailedMode;
@@ -1293,7 +1359,16 @@
       selectedImage = newImageName;
 
       // Re-compute the CNN using the new input image
-      cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+      // cnn = await constructCNN(`PUBLIC_URL/assets/img/${selectedImage}`, model);
+      if (!isPause){
+        clearInterval(timer);
+      }
+      document.getElementById("pauseButton").innerHTML = "continue";
+      isPause = true;
+      let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`);
+      cnn = cnn_max[0];
+      max_class = classLists[cnn_max[1]];
+      maxClassChanged();
 
       // Ignore the flatten layer for now
       let flatten = cnn[cnn.length - 2];
@@ -1347,7 +1422,16 @@
     customImageURL = event.detail.url;
 
     // Re-compute the CNN using the new input image
-    cnn = await constructCNN(customImageURL, model);
+    // cnn = await constructCNN(customImageURL, model);
+    if (!isPause){
+      clearInterval(timer);
+    }
+    document.getElementById("pauseButton").innerHTML = "continue";
+    isPause = true;
+    let cnn_max = await constructCNNFront(`PUBLIC_URL/assets/img/${selectedImage}`);
+    cnn = cnn_max[0];
+    max_class = classLists[cnn_max[1]];
+    maxClassChanged();
 
     // Ignore the flatten layer for now
     let flatten = cnn[cnn.length - 2];
@@ -1396,6 +1480,197 @@
 </script>
 
 <style>
+  /* fallback */
+  @font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+  }
+  /* cyrillic-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fCRc4EsA.woff2) format('woff2');
+    unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+  }
+  /* cyrillic */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fABc4EsA.woff2) format('woff2');
+    unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  }
+  /* greek-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fCBc4EsA.woff2) format('woff2');
+    unicode-range: U+1F00-1FFF;
+  }
+  /* greek */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fBxc4EsA.woff2) format('woff2');
+    unicode-range: U+0370-03FF;
+  }
+  /* vietnamese */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fCxc4EsA.woff2) format('woff2');
+    unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+  }
+  /* latin-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fChc4EsA.woff2) format('woff2');
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  /* latin */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5fBBc4.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  /* cyrillic-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKOzY.woff2) format('woff2');
+    unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+  }
+  /* cyrillic */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu5mxKOzY.woff2) format('woff2');
+    unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  }
+  /* greek-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu7mxKOzY.woff2) format('woff2');
+    unicode-range: U+1F00-1FFF;
+  }
+  /* greek */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4WxKOzY.woff2) format('woff2');
+    unicode-range: U+0370-03FF;
+  }
+  /* vietnamese */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu7WxKOzY.woff2) format('woff2');
+    unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+  }
+  /* latin-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu7GxKOzY.woff2) format('woff2');
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  /* latin */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  /* cyrillic-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fCRc4EsA.woff2) format('woff2');
+    unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+  }
+  /* cyrillic */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fABc4EsA.woff2) format('woff2');
+    unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  }
+  /* greek-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fCBc4EsA.woff2) format('woff2');
+    unicode-range: U+1F00-1FFF;
+  }
+  /* greek */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2) format('woff2');
+    unicode-range: U+0370-03FF;
+  }
+  /* vietnamese */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fCxc4EsA.woff2) format('woff2');
+    unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+  }
+  /* latin-ext */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2) format('woff2');
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  /* latin */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBBc4.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  .material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
   .overview {
     padding: 0;
     height: 100%;
@@ -1611,6 +1886,196 @@
     cursor: pointer;
   }
 
+  #CZJcontainer {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #clockTime {
+    flex: 1;
+    text-align: center;
+    font-size: 30px;
+    margin: auto;
+  }
+
+  #maxClass {
+    flex: 1;
+    text-align: center;
+    font-size: 30px;
+    margin: auto;
+  }
+
+  #top-controls {
+    border-bottom: 1px solid #ddd;
+    padding: 18px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    background: white;
+  }
+
+  @media (min-height: 700px) {
+    #top-controls {
+      padding: 24px 0;
+    }
+  }
+
+  #top-controls .container {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-betweenspace-between;
+    justify-content: space-between;
+  }
+
+  #top-controls .timeline-controls {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    width: 140px;
+  }
+  #top-controls .control {
+    flex-grow: 1;
+    max-width: 180px;
+    min-width: 110px;
+    margin-left: 30px;
+    margin-top: 6px;
+  }
+
+  #top-controls .control .label,
+  #top-controls .control label {
+    color: #777;
+    font-size: 13px;
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 300;
+  }
+
+  #top-controls .control .value {
+    font-size: 24px;
+    margin: 0;
+    font-weight: 300;
+  }
+
+  #top-controls .control .select {
+    position: relative;
+  }
+
+  #top-controls .control select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: block;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 6px 0;
+    width: 100%;
+    font-size: 14px;
+    border-bottom: solid 1px #ccc;
+    color: #333;
+    outline: none;
+  }
+
+  #top-controls .control select:focus {
+    border-bottom-color: #183D4E;
+  }
+
+  #top-controls .control .select::after {
+    class: "material-icons";
+    content: "arrow_drop_down";
+    color: #999;
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    position: absolute;
+    right: 0;
+    top: 6px;
+    pointer-events: none;
+  }
+  .l--page {
+    width: 944px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 1180px) {
+    .l--page {
+      width: 1100px;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .l--page {
+      width: 1220px;
+    }
+  }
+  #main-part .mdl-button {
+    background-color: rgba(158,158,158,.1);
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+
+  #main-part .mdl-button:hover {
+    background-color: rgba(158,158,158,.3);
+  }
+
+  #main-part .mdl-button:focus:not(:active) {
+      background-color: rgba(158,158,158,.4);
+  }
+
+  #main-part .mdl-button:active {
+      background-color: rgba(158,158,158,.5);
+  }
+
+  #main-part .mdl-button .material-icons {
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.7);
+  }
+  .plus-minus-neurons .mdl-button:first-of-type {
+    margin-right: 5px;
+  }
+
+  .hidden-layers h4 .mdl-button {
+    margin-right: 5px;
+  }
+
+  .mdl-button--fab.mdl-button--colored,
+  .mdl-button--fab.mdl-button--colored:hover,
+  .mdl-button--fab.mdl-button--colored:active,
+  .mdl-button--fab.mdl-button--colored:focus,
+  .mdl-button--fab.mdl-button--colored:focus:not(:active) {
+      background: #183D4E;
+  }
+  #play-pause-button .material-icons:nth-of-type(2) {
+    display: none;
+  }
+
+  #play-pause-button.playing .material-icons:nth-of-type(1) {
+    display: none;
+  }
+
+  #play-pause-button.playing .material-icons:nth-of-type(2) {
+    display: inherit;
+  }
+
+  /* .iconhidden {
+    display:none;
+    visibility:hidden;
+  } */
 </style>
 
 <div class="overview"
@@ -1720,7 +2185,47 @@
     </select>
   </div>
 </div>
-
+<!-- <div id="top-controls">
+  <div class="container l--page">
+    <div class="timeline-controls">
+      <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton" id="reset-button" title="Reset the network" data-upgraded=",MaterialButton">
+        <i class="material-icons">replay</i>
+      </button>
+      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored ui-playButton" id="play-pause-button" title="Run/Pause" data-upgraded=",MaterialButton"
+      on:click={pauseButtonClicked}>
+        <i class="material-icons" id="pause">pause</i>
+        <i class="material-icons" id="play">play_arrow</i>
+      </button>
+      <button class="mdl-button mdl-js-button mdl-button--icon ui-stepButton" id="next-step-button" title="Step" data-upgraded=",MaterialButton">
+        <i class="material-icons">skip_next</i>
+      </button>
+    </div>
+    <div class="control">
+      <span class="label">Epoch</span>
+      <span class="value" id="iter-number">000,168</span>
+    </div>
+  </div>
+</div> -->
+<div id="CZJcontainer">
+  <div id="clockTime">Epoch num: 0</div>
+  <div id="maxClass">Predict: none</div>
+</div>
+<button class="button" 
+  id="pauseButton"
+  style="font-size: 30px; width: 200px; display: block; margin: auto;"
+  on:click={pauseButtonClicked}>continue</button>
+<!-- <button class="button is-very-small"
+        id="detailed-button"
+        disabled={disableControl}
+        class:is-activated={detailedMode}
+        on:click={detailedButtonClicked}>
+        <span class="icon">
+          <i class="fas fa-eye"></i>
+        </span>
+        <span id="hover-label-text">
+          暂停
+        </span>
+</button> -->
 <!-- <Article/> -->
 
 <div id='detailview'>

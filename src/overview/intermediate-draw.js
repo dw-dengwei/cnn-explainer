@@ -1218,7 +1218,10 @@ export const drawConv1 = (curLayerIndex, d, i, width, height,
 
   // Compute the gap in the right shrink region
   let rightStart = targetX + nodeLength + hSpaceAroundGap * gapRatio;
-  let rightGap = (width - rightStart - 10 * nodeLength) / 10;
+  // TODO: modify
+  let factor = cnn.length - (curLayerIndex + 1);
+  let rightGap = (width - rightStart - factor * nodeLength) / factor;
+  // let rightGap = (width - rightStart - 10 * nodeLength) / 10;
 
   // Move the right layers
   for (let i = curLayerIndex + 1; i < numLayers; i++) {
@@ -1277,44 +1280,44 @@ export const drawConv1 = (curLayerIndex, d, i, width, height,
 
   let range = cnnLayerRanges.local[curLayerIndex];
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: 1,
-    group: intermediateLayer,
-    width: 2 * nodeLength + intermediateGap,
-    isInput: true,
-    x: leftX,
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10 - 25
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: 1,
+  //   group: intermediateLayer,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   isInput: true,
+  //   x: leftX,
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10 - 25
+  // });
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: range,
-    minMax: finalMinMax,
-    group: intermediateLayer,
-    width: 2 * nodeLength + intermediateGap,
-    x: nodeCoordinate[curLayerIndex - 1][2].x,
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: range,
+  //   minMax: finalMinMax,
+  //   group: intermediateLayer,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   x: nodeCoordinate[curLayerIndex - 1][2].x,
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10
+  // });
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: kernelRange,
-    minMax: kernelMinMax,
-    group: intermediateLayer,
-    width: 2 * nodeLength + intermediateGap,
-    x: targetX + nodeLength - (2 * nodeLength + intermediateGap),
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10,
-    gradientAppendingName: 'kernelColorGradient',
-    colorScale: layerColorScales.weight,
-    gradientGap: 0.2
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: kernelRange,
+  //   minMax: kernelMinMax,
+  //   group: intermediateLayer,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   x: targetX + nodeLength - (2 * nodeLength + intermediateGap),
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10,
+  //   gradientAppendingName: 'kernelColorGradient',
+  //   colorScale: layerColorScales.weight,
+  //   gradientGap: 0.2
+  // });
 
   // Show everything
   svg.selectAll('g.intermediate-layer, g.intermediate-layer-annotation')
@@ -1360,7 +1363,10 @@ export const drawConv2 = (curLayerIndex, d, i, width, height,
 
   // Compute the gap in the right shrink region
   let rightStart = targetX + nodeLength + hSpaceAroundGap * gapRatio;
-  let rightGap = (width - rightStart - 8 * nodeLength) / 8;
+  // TODO: modify
+  let factor = cnn.length - (curLayerIndex + 1);
+  let rightGap = (width - rightStart - factor * nodeLength) / factor;
+  // let rightGap = (width - rightStart - 8 * nodeLength) / 8;
 
   // Move the right layers
   for (let i = curLayerIndex + 1; i < numLayers; i++) {
@@ -1419,32 +1425,32 @@ export const drawConv2 = (curLayerIndex, d, i, width, height,
     i: i
   });
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: range,
-    minMax: finalMinMax,
-    group: intermediateLayer,
-    width: 2 * nodeLength + intermediateGap,
-    x: leftX,
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: range,
+  //   minMax: finalMinMax,
+  //   group: intermediateLayer,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   x: leftX,
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10
+  // });
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: kernelRange,
-    minMax: kernelMinMax,
-    group: intermediateLayer,
-    width: 2 * nodeLength + intermediateGap,
-    x: targetX + nodeLength - (2 * nodeLength + intermediateGap),
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10,
-    gradientAppendingName: 'kernelColorGradient',
-    colorScale: layerColorScales.weight,
-    gradientGap: 0.2
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: kernelRange,
+  //   minMax: kernelMinMax,
+  //   group: intermediateLayer,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   x: targetX + nodeLength - (2 * nodeLength + intermediateGap),
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10,
+  //   gradientAppendingName: 'kernelColorGradient',
+  //   colorScale: layerColorScales.weight,
+  //   gradientGap: 0.2
+  // });
 
   // Show everything
   svg.selectAll('g.intermediate-layer, g.intermediate-layer-annotation')
@@ -1630,7 +1636,10 @@ export const drawConv4 = (curLayerIndex, d, i, width, height,
 
   // Compute the gap in the left shrink region
   let leftEnd = leftX - hSpaceAroundGap;
-  let leftGap = (leftEnd - nodeCoordinate[0][0].x - 7 * nodeLength) / 7;
+  // TODO: modify the factor
+  let factor = curLayerIndex - 1
+  let leftGap = (leftEnd - nodeCoordinate[0][0].x - (factor) * nodeLength) / factor;
+  // let leftGap = (leftEnd - nodeCoordinate[0][0].x - 7 * nodeLength) / 7;
   let rightStart = targetX + nodeLength + hSpaceAroundGap;
 
   // Move the left layers
@@ -1688,32 +1697,32 @@ export const drawConv4 = (curLayerIndex, d, i, width, height,
     i: i
   });
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: range,
-    group: intermediateLayer,
-    minMax: finalMinMax,
-    width: 2 * nodeLength + intermediateGap,
-    x: leftX,
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: range,
+  //   group: intermediateLayer,
+  //   minMax: finalMinMax,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   x: leftX,
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10
+  // });
 
-  drawIntermediateLayerLegend({
-    legendHeight: 5,
-    curLayerIndex: curLayerIndex,
-    range: kernelRange,
-    minMax: kernelMinMax,
-    group: intermediateLayer,
-    width: 2 * nodeLength + intermediateGap,
-    x: targetX + nodeLength - (2 * nodeLength + intermediateGap),
-    y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
-      nodeLength * 10,
-    gradientAppendingName: 'kernelColorGradient',
-    colorScale: layerColorScales.weight,
-    gradientGap: 0.2
-  });
+  // drawIntermediateLayerLegend({
+  //   legendHeight: 5,
+  //   curLayerIndex: curLayerIndex,
+  //   range: kernelRange,
+  //   minMax: kernelMinMax,
+  //   group: intermediateLayer,
+  //   width: 2 * nodeLength + intermediateGap,
+  //   x: targetX + nodeLength - (2 * nodeLength + intermediateGap),
+  //   y: svgPaddings.top + vSpaceAroundGap * (10) + vSpaceAroundGap + 
+  //     nodeLength * 10,
+  //   gradientAppendingName: 'kernelColorGradient',
+  //   colorScale: layerColorScales.weight,
+  //   gradientGap: 0.2
+  // });
 
   // Show everything
   svg.selectAll('g.intermediate-layer, g.intermediate-layer-annotation')

@@ -55,53 +55,46 @@ class Link {
   }
 }
 const get_model = () => {
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.open('POST', 'http://10.112.35.137:5000/get_model', false);
-  httpRequest.send();
-  const res = httpRequest.responseText;
-  let model = JSON.parse(res);
-  return model;
-}
-const read_image = (path) => {
   return new Promise((resolve, reject) => {
-    let img = new Image();
-    img.src = path;
-    img.onload = function() {
-      let canvas = document.createElement("canvas");
-      canvas.width = this.width;
-      canvas.height = this.height;
-      let context = canvas.getContext("2d");
-      context.drawImage(this, 0, 0, canvas.width, canvas.height);
-      let imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      let data = imageData.data;
-      let buffer = new ArrayBuffer(data.length);
-      let intArray = new Uint8Array(buffer);
-      for (let i = 0; i < data.length; i++) {
-        intArray[i] = data[i];
-      }
-      let x = intArray.buffer;
-      resolve(x);
-    }
-    img.onerror = function() {
-      reject("无法加载指定的图像：" + path);
-    }
+    var httpRequest = new XMLHttpRequest();
+    // httpRequest.open('POST', 'http://10.112.35.137:5001/get_model', false);
+    httpRequest.open('POST', 'http://10.112.35.137:5004/init', false);
+    httpRequest.send();
+    const res = httpRequest.responseText;
+    // let model = JSON.parse(res);
+    // return model;
   });
 }
-const get_feature_map = () => {
-  // let x = await read_image('PUBLIC_URL/assets/img/panda_1.jpeg')
-  // const data = JSON.stringify({'file': new Int16Array(x)});
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.open('POST', 'http://10.112.35.137:5000/get_feature_map', false);
-  httpRequest.send();
-  const res = httpRequest.responseText;
-  let _json = JSON.parse(res);
-  return _json['allOutputs'];
+const get_feature_map = (img_path) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = img_path;
+    img.onload = function() {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const context = canvas.getContext("2d");
+        context.drawImage(img, 0, 0, img.width, img.height);
+        const base64 = canvas.toDataURL("image/png");
+
+        const formData = new FormData();
+        formData.append("image", base64);
+
+        fetch("http://10.112.35.137:5004/get_feature_map", {
+            method: "POST",
+            body: formData
+        }).then(response => response.json())
+          .then(data => resolve(data))
+          .catch(error => reject(error));
+      };
+  });
 }
 const get_input_image_array = () => {
   // let x = await read_image('PUBLIC_URL/assets/img/panda_1.jpeg')
   // const data = JSON.stringify({'file': new Int16Array(x)});
   var httpRequest = new XMLHttpRequest();
-  httpRequest.open('POST', 'http://10.112.35.137:5000/get_input_image_array', false);
+  httpRequest.open('POST', 'http://10.112.35.137:5001/get_input_image_array', false);
   httpRequest.send();
   const res = httpRequest.responseText;
   let _json = JSON.parse(res);
@@ -115,21 +108,36 @@ const newLayer = (layer, s) => {
 }
 
 // allOutputs, model, inputImageArray
-export const constructCNNFront = async () => {
-    let model = get_model();
-    let allOutputs =  get_feature_map();
-    let inputImageArray =  get_input_image_array();
+export const constructCNNFront = async (img_path, is_init=false) => {
+    // let model = get_model();
+    if (is_init) {
+      get_model();
+    }
+    let feature_map = await get_feature_map(img_path);
+    // let inputImageArray =  get_input_image_array();
     // let allOutputs = allOutputsjson['allOutputs']
     // let inputImageArray = inputImageArrayjson['inputImageArray']
-    console.log(allOutputs)
+    console.log(feature_map);
+    let model = feature_map["model"];
+    let inputImageArray = feature_map["inputImageArray"];
+    let allOutputs = feature_map["allOutputs"]
 
-    model.layers[5] = JSON.parse(JSON.stringify(model.layers[7]));
-    model.layers[5].name = "conv_3_1";
+    let last = allOutputs.length - 1;
+    let max_value = allOutputs[last][0];
+    let max_i = 0;
+    for (let i = 0; i < 10; ++i) {
+      if (allOutputs[last][i] > max_value) {
+        max_i = i;
+        max_value = allOutputs[last][i];
+      }
+    }
+    // model.layers[5] = JSON.parse(JSON.stringify(model.layers[7]));
+    // model.layers[5].name = "conv_3_1";
+    // model.layers.splice(2, 0, newLayer(model.layers[7], 'conv_1_5'), newLayer(model.layers[8], 'relu_1_5'))
+    // allOutputs.splice(2, 0, JSON.parse(JSON.stringify(allOutputs[7])), JSON.parse(JSON.stringify(allOutputs[8])))
+    
     // model.layers.splice(4, 2);
     // allOutputs.splice(4, 2);
-
-    model.layers.splice(2, 0, newLayer(model.layers[7], 'conv_1_5'), newLayer(model.layers[8], 'relu_1_5'))
-    allOutputs.splice(2, 0, JSON.parse(JSON.stringify(allOutputs[7])), JSON.parse(JSON.stringify(allOutputs[8])))
     // let temp = [];
     // for (let i = 1; i < allOutputs.length; ++i) {
     //   if (i === 1) {
@@ -307,5 +315,5 @@ export const constructCNNFront = async () => {
       curLayerIndex++;
     }
   
-    return cnn;
+    return [cnn, max_i];
   }
