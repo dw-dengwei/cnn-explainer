@@ -58,7 +58,7 @@ const get_model = (model_id) => {
   return new Promise((resolve, reject) => {
     var httpRequest = new XMLHttpRequest();
     // httpRequest.open('POST', 'http://10.112.35.137:5001/get_model', false);
-    httpRequest.open('POST', 'http://10.112.35.137:5005/init/' + model_id, false);
+    httpRequest.open('POST', 'http://10.112.35.137:5008/init/' + model_id, false);
     httpRequest.send(); // JSON.stringify({"model": model_id})
     const res = httpRequest.responseText;
     // let model = JSON.parse(res);
@@ -81,7 +81,7 @@ const get_feature_map = (img_path) => {
         const formData = new FormData();
         formData.append("image", base64);
 
-        fetch("http://10.112.35.137:5005/get_feature_map", {
+        fetch("http://10.112.35.137:5008/get_feature_map", {
             method: "POST",
             body: formData
         }).then(response => response.json())
